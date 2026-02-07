@@ -1,65 +1,160 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState, useCallback } from 'react';
+import Link from 'next/link';
+import { DEFAULT_TICKERS } from '@/lib/constants';
+import { RefreshBar } from '@/components/refresh-bar';
+import { usePolling } from '@/lib/use-polling';
+import type { TradierQuote } from '@/types/tradier';
+
+export default function Dashboard() {
+  const [quotes, setQuotes] = useState<TradierQuote[]>([]);
+
+  const fetchQuotes = useCallback(async () => {
+    const res = await fetch(`/api/quotes?symbols=${DEFAULT_TICKERS.join(',')}`);
+    const d = await res.json();
+    setQuotes(Array.isArray(d.quotes) ? d.quotes : [d.quotes]);
+  }, []);
+
+  const { interval, changeInterval, lastUpdated, isRefreshing, refreshNow } =
+    usePolling(fetchQuotes, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="space-y-8">
+      {/* Hero */}
+      <div className="text-center space-y-2 py-4">
+        <h1 className="text-4xl font-bold">
+          The Daily{' '}
+          <span className="text-accent">H</span>
+          <span className="text-accent">.</span>
+          <span className="text-accent">E</span>
+          <span className="text-accent">.</span>
+          <span className="text-accent">A</span>
+          <span className="text-accent">.</span>
+          <span className="text-accent">T</span>
+          <span className="text-accent">.</span>
+        </h1>
+        <p className="text-muted text-sm">
+          Torching Wall Street&apos;s Obsolete Playbook
+        </p>
+      </div>
+
+      {/* Four Pillars */}
+      <div className="grid grid-cols-2 gap-4">
+        <Link href="/hedge" className="group">
+          <div className="bg-card border border-card-border rounded-lg p-6 hover:border-blue-400/50 transition-colors">
+            <div className="text-blue-400 text-3xl font-bold mb-2">H</div>
+            <h2 className="font-bold text-lg">Hedge</h2>
+            <p className="text-muted text-sm mt-1">
+              Portfolio risk dashboard. VIX monitoring. Hedge suggestions
+              (protective puts, collars, spreads).
+            </p>
+            <p className="text-blue-400 text-xs mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              &quot;Hedge against disaster&quot; &rarr;
+            </p>
+          </div>
+        </Link>
+
+        <Link href="/edge" className="group">
+          <div className="bg-card border border-card-border rounded-lg p-6 hover:border-accent/50 transition-colors">
+            <div className="text-accent text-3xl font-bold mb-2">E</div>
+            <h2 className="font-bold text-lg">Edge</h2>
+            <p className="text-muted text-sm mt-1">
+              0DTE covered call decision engine. IV percentile ranking.
+              Premium richness signals. Daily sell/skip.
+            </p>
+            <p className="text-accent text-xs mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              &quot;Find your edge&quot; &rarr;
+            </p>
+          </div>
+        </Link>
+
+        <Link href="/asymmetry" className="group">
+          <div className="bg-card border border-card-border rounded-lg p-6 hover:border-yellow/50 transition-colors">
+            <div className="text-yellow text-3xl font-bold mb-2">A</div>
+            <h2 className="font-bold text-lg">Asymmetry</h2>
+            <p className="text-muted text-sm mt-1">
+              Options scanner for skewed risk/reward. Unusual volume
+              detection. Find setups where upside &gt;&gt; downside.
+            </p>
+            <p className="text-yellow text-xs mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              &quot;Exploit asymmetric opportunities&quot; &rarr;
+            </p>
+          </div>
+        </Link>
+
+        <Link href="/theme" className="group">
+          <div className="bg-card border border-card-border rounded-lg p-6 hover:border-green/50 transition-colors">
+            <div className="text-green text-3xl font-bold mb-2">T</div>
+            <h2 className="font-bold text-lg">Theme</h2>
+            <p className="text-muted text-sm mt-1">
+              LLM-powered news analysis. Separate signal from noise. Ride
+              major themes before Wall Street catches on.
+            </p>
+            <p className="text-green text-xs mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+              &quot;Ride major themes&quot; &rarr;
+            </p>
+          </div>
+        </Link>
+      </div>
+
+      {/* Market Overview */}
+      <div className="bg-card border border-card-border rounded-lg overflow-hidden">
+        <div className="px-4 py-3 border-b border-card-border flex items-center justify-between">
+          <h2 className="font-bold text-sm">Mag 7 + IBIT</h2>
+          <RefreshBar
+            lastUpdated={lastUpdated}
+            isRefreshing={isRefreshing}
+            interval={interval}
+            onIntervalChange={changeInterval}
+            onRefreshNow={refreshNow}
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+        {quotes.length > 0 && (
+          <div className="grid grid-cols-3 gap-px bg-card-border">
+            {quotes.map((q) => (
+              <div
+                key={q.symbol}
+                className="bg-card px-4 py-3 flex items-center justify-between"
+              >
+                <div>
+                  <div className="font-mono font-bold text-sm">
+                    {q.symbol}
+                  </div>
+                  <div className="text-xs text-muted">
+                    {q.description?.split(' ').slice(0, 2).join(' ')}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="font-mono text-sm">
+                    ${q.last?.toFixed(2)}
+                  </div>
+                  <div
+                    className={`text-xs font-mono ${
+                      (q.change ?? 0) >= 0 ? 'text-green' : 'text-red'
+                    }`}
+                  >
+                    {(q.change ?? 0) >= 0 ? '+' : ''}
+                    {q.change_percentage?.toFixed(2)}%
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Reference */}
+      <div className="text-center text-xs text-muted space-y-1 pb-4">
+        <p>
+          Based on the 0DTE options framework from The Daily H.E.A.T. newsletter
+        </p>
+        <p>
+          &quot;The investors who adapt early won&apos;t just collect premium.
+          They&apos;ll preserve the upside windows that actually move
+          portfolios.&quot;
+        </p>
+      </div>
     </div>
   );
 }
